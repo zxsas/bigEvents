@@ -94,7 +94,12 @@
                 }
 
             })
-            
+            $("#exampleInputFile").change(function(){
+                var file = this.files[0]
+                console.log(this.files);
+                var url = URL.createObjectURL(file)
+                $(".user_pic").attr("src",url)
+            })
         })
 
     </script>
