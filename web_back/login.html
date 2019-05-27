@@ -42,7 +42,6 @@
                     <h4 class="modal-title" id="myModalLabel">弹出框</h4>
                 </div>
                 <div class="modal-body">
-                    密码或用户错误
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">离开</button>
@@ -74,6 +73,11 @@ password	string	密码(123456)
             e.preventDefault()
             var text = $(".input_txt").val().trim()
             var password = $(".input_pass").val().trim()
+            if (text == '' || password == '') {
+                $('.my-modal-body').text('记得输入用户名和密码哦！！')
+                $('#myModal').modal()
+                return
+            }
             $.ajax({
                 url: "https://autumnfish.cn/big/admin/login",
                 type: "post",
@@ -85,8 +89,14 @@ password	string	密码(123456)
                     console.log(backData);
                     if (backData.code == 400) {
                         // alert("密码或用户错误")
+                        $('.my-modal-body').text('输入用户名或密码错误！！')
+
                         $('#myModal').modal()
-                        
+                        $(".btn-primary").click(function () {
+                            console.log(1);
+
+                            $('#myModal').modal('hide')
+                        })
                     } else if (backData.code == 200) {
                         // alert("正确")
                         window.location.href = "index.html"
@@ -95,7 +105,9 @@ password	string	密码(123456)
 
                 }
 
+
             })
+
         })
     })
 </script>
