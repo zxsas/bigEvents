@@ -65,7 +65,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         /*
         
             请求地址：<http://localhost:8000/admin/userinfo_get>
@@ -117,8 +117,7 @@ password	string	用户密码
             $(".btn-success").click(function(e){
                 e.preventDefault() 
                 var formData = new FormData($("form")[0])  
-                console.log(formData);
-                            
+                console.log(formData);                            
                 $.ajax({
                     url:"http://localhost:8000/admin/userinfo_edit",
                     type:"post",
@@ -132,7 +131,7 @@ password	string	用户密码
             })
         })
 
-    </script>
+</script>
 
 </body>
 

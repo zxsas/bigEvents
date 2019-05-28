@@ -138,7 +138,7 @@
                 <td>{{$value.slug}}</td>
                 <td class="text-center">
                     <a href='javascript:editTr({"id":"4","slug":"travel","name":"爱旅行"});' class="btn btn-info btn-xs">编辑</a>
-                    <a href="javascript:deleteTr( 4 );" class="btn btn-danger btn-xs">删除</a>
+                    <a href="javascript:deleteTr({{$value.id}});" class="btn btn-danger btn-xs">删除</a>
                 </td>
         </tr>
         {{/each}}
@@ -173,7 +173,47 @@
               2. 调用接口
               3. 响应回来之后
 
+
+              #### 分类删除
+
+请求地址：<http://localhost:8000/admin/category_delete>
+
+请求方式：post
+
+请求参数：id
+
+步骤
+
+1. 生成每一行的时候，把id到deleteTr()
+2. 实现deleteTr方法 获取id
+3. 通过ajax删除对应的数据
+4. 删除成功之后 重新获取数据（局部刷新）
+
+重点
+
+1. 每一个行已经绑定了一个事件，只需要传入对应的数据即可
+   ​	2. 事件实现时，要放在全局，否则访问不到
+
+疑问?
+
+1. 删除数据之后，服务器提示删除成功了，重新调用接口获取数据
+
+   1. 重新请求数据是否浪费新能，浪费!
+      1. 如果要性能更好一些(数据量非常大的情况下)
+      2. 只要服务器提示成功了
+      3. 删除dom元素 这一行
+
+2. 除了用a标签绑定事件之外，可以使用其他方法吗？
+
+   ```
+   1. tr是动态生成的，用事件委托给父元素 比如tbody
+   2. 点击a获取对应的id，把id保存在元素身上 比如 data-id
+   ```
+
+      
+
         */
+
         $(function () {
             function getData() {
                 $.ajax({
@@ -203,6 +243,23 @@
                     }
                 })
             })
+            window.deleteTr = function (id) {
+                $.ajax({
+                    url: "http://localhost:8000/admin/category_delete",
+                    type: "post",
+                    data: {
+                        id: id
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if(backData.code == 200){
+                            getData()
+                        }
+
+                    }
+                })
+            }
+
         })
     </script>
 
