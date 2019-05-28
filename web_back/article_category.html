@@ -72,7 +72,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
+                            <a href="#" class="btn btn-success btn-add" data-toggle="modal" data-target="#addModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -85,17 +85,18 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
-                    <h4 class="modal-title">新增分类</h4>
+                    <h4 class="modal-title ">新增分类</h4>
                 </div>
                 <div class="modal-body">
                     <form>
+                        <input type="hidden" name="id">
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">分类名称:</label>
-                            <input type="text" class="form-control form1" id="recipient-name">
+                            <input type="text" class="form-control form1" id="recipient-name" name="name">
                         </div>
                         <div class="form-group">
                             <label for="message-text" class="control-label">分类别名:</label>
-                            <input type="text" class="form-control form2" id="recipient-name">
+                            <input type="text" class="form-control form2" id="recipient-name" name="slug">
                         </div>
                     </form>
                 </div>
@@ -114,14 +115,14 @@
         });
 
         $('#model_shutoff').click(function () {
-            alert('shutoff');
+            // alert('shutoff');
             $('#addModal').modal('hide');
         });
 
-        // $('#model_add').click(function () {
-        //     alert('add');
-        //     $('#addModal').modal('hide');
-        // });
+        $('#model_add').click(function () {
+            // alert('add');
+            $('#addModal').modal('hide');
+        });
 
         $('.category_table').delegate('a', 'click', function () {
             if ($(this).hasClass('btn-info')) {
@@ -137,14 +138,94 @@
                 <td>{{$value.name}}</td>
                 <td>{{$value.slug}}</td>
                 <td class="text-center">
-                    <a href='javascript:editTr({"id":"4","slug":"travel","name":"爱旅行"});' class="btn btn-info btn-xs">编辑</a>
+                    <a href='javascript:editTr({"id":"{{$value.id}}","slug":"{{$value.slug}}","name":"{{$value.name}}"});' class="btn btn-info btn-xs">编辑</a>
                     <a href="javascript:deleteTr({{$value.id}});" class="btn btn-danger btn-xs">删除</a>
                 </td>
         </tr>
         {{/each}}
     </script>
     <script>
-        /*
+
+
+        $(function () {
+            function getData() {
+                $.ajax({
+                    url: "http://localhost:8000/admin/category_search",
+                    type: "get",
+                    success: function (backData) {
+                        // console.log(backData)
+                        $("tbody").html(template("tem", backData))
+
+                    }
+                })
+            }
+            
+
+            window.deleteTr = function (id) {
+                $.ajax({
+                    url: "http://localhost:8000/admin/category_delete",
+                    type: "post",
+                    data: {
+                        id: id
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if (backData.code == 200) {
+                            getData()
+                        }
+
+                    }
+                })
+            }
+            window.editTr = function (data) {
+                console.log(data);
+                
+                $(".modal-title").text("编辑分类名称")
+                $("#model_add").text("编辑").addClass("btn-success")
+                for (const key in data) {
+                    $("input[name = "+key+"]").val(data[key])
+                }
+
+            }
+            $(".btn-add").click(function () {
+                $(".modal-title").text("新增分类名称")
+                $("#model_add").text("新增").removeClass("btn-success")
+                $(".form-control").val("")
+            })
+            getData()
+            $("#model_add").click(function () {
+                if ($(this).hasClass("btn-success")) {
+                    $.ajax({
+                        url: "http://localhost:8000/admin/category_edit",
+                        type: "post",
+                        data: $('form').serialize(),
+                        success: function (backData) {
+                            console.log(backData)
+                            if (backData.code == 200) {
+                                getData()
+                            }
+                        }
+                    })
+                } else {
+                    $.ajax({
+                        url: "http://localhost:8000/admin/category_add",
+                        type: "post",
+                        data: {
+                            name: $(".form1").val(),
+                            slug: $(".form2").val(),
+                        },
+                        success: function (backData) {
+                            console.log(backData);
+                            if (backData.code == 200) {
+                                getData()
+                            }
+                        }
+                    })
+                }
+                $('#addModal').modal('hide')
+            })
+        })
+              /*
           ### 获取文章分类信息
 
 请求地址：<http://localhost:8000/admin/category_search>
@@ -177,32 +258,23 @@
               #### 分类删除
 
 请求地址：<http://localhost:8000/admin/category_delete>
-
 请求方式：post
-
 请求参数：id
-
 步骤
 
 1. 生成每一行的时候，把id到deleteTr()
 2. 实现deleteTr方法 获取id
 3. 通过ajax删除对应的数据
 4. 删除成功之后 重新获取数据（局部刷新）
-
 重点
-
 1. 每一个行已经绑定了一个事件，只需要传入对应的数据即可
    ​	2. 事件实现时，要放在全局，否则访问不到
-
 疑问?
-
 1. 删除数据之后，服务器提示删除成功了，重新调用接口获取数据
-
    1. 重新请求数据是否浪费新能，浪费!
       1. 如果要性能更好一些(数据量非常大的情况下)
       2. 只要服务器提示成功了
       3. 删除dom元素 这一行
-
 2. 除了用a标签绑定事件之外，可以使用其他方法吗？
 
    ```
@@ -210,57 +282,43 @@
    2. 点击a获取对应的id，把id保存在元素身上 比如 data-id
    ```
 
-      
+
+
+    #### 分类编辑
+步骤1,弹出编辑框
+1. 为编辑a标签绑定的方法editTr()传递数据
+2. 定义一个全局的方法 editTr
+3. 方法中获取数据
+4. 填充到弹框内部
+5. 修改弹框的内容 看起来像编辑
+   1. 顶部标题
+   2. 新增按钮 ->修改 btn-success
+6. 弹框只有一个，需要调整外观给用户一个幻觉，这是编辑框
+
+步骤2 点击新增还原外观
+1. 为新增分类绑定点击事件
+2. 顶部标题
+3. 按钮的内容和类名
+4. 注意点
+   ​	1. 新增框弹出时清空原始内容美观
+   ​	2. jQ的2大特点,
+   ​     	1. 隐式迭代：内部会偷偷地帮我们遍历
+   ​     	2. 链式编程：方法的返回值还是jQ对象所以可以继续调用方法
+
+步骤3 点击保存保存数据
+请求地址：<http://localhost:8000/admin/category_edit>
+请求方式：post
+请求参数：
+1. 为保存按钮绑定的逻辑中增加判断条件
+   ​	1. btn-success 保存
+   ​	2. btn-success不存在 新增
+   1. 保存：
+      1. 获取id，slug,name
+         1. ajax提交到服务器
+            1. 提交成功之后，局部刷新
+   2. 隐藏域隐藏了一个id 否则不好获取编辑数据的唯一标记  
 
         */
-
-        $(function () {
-            function getData() {
-                $.ajax({
-                    url: "http://localhost:8000/admin/category_search",
-                    type: "get",
-                    success: function (backData) {
-                        // console.log(backData)
-                        $("tbody").html(template("tem", backData))
-                    }
-                })
-            }
-            getData()
-            $("#model_add").click(function () {
-                $.ajax({
-                    url: "http://localhost:8000/admin/category_add",
-                    type: "post",
-                    data: {
-                        name: $(".form1").val(),
-                        slug: $(".form2").val(),
-                    },
-                    success: function (backData) {
-                        console.log(backData);
-                        $('#addModal').modal('hide')
-                        if (backData.code == 200) {
-                            getData()
-                        }
-                    }
-                })
-            })
-            window.deleteTr = function (id) {
-                $.ajax({
-                    url: "http://localhost:8000/admin/category_delete",
-                    type: "post",
-                    data: {
-                        id: id
-                    },
-                    success: function (backData) {
-                        console.log(backData);
-                        if(backData.code == 200){
-                            getData()
-                        }
-
-                    }
-                })
-            }
-
-        })
     </script>
 
 </body>
